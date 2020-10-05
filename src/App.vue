@@ -3,7 +3,20 @@
     <v-app-bar color="primary" dark app>
       <v-app-bar-nav-icon @click="drawer = true"></v-app-bar-nav-icon>
 
-      <v-toolbar-title>Title</v-toolbar-title>
+      <v-toolbar-title>Appsec Lab</v-toolbar-title>
+      <v-spacer></v-spacer>
+      <v-btn v-if="!userId" to="/login" color="primary" class="elevation-0"
+        ><v-icon left>mdi-login</v-icon>Login</v-btn
+      >
+
+      <v-btn
+        v-else
+        to="/logout"
+        color="primary"
+        class="elevation-0"
+        @click="$store.commit('logout')"
+        ><v-icon left>mdi-logout</v-icon>Logout</v-btn
+      >
     </v-app-bar>
 
     <v-navigation-drawer v-model="drawer" absolute temporary>
@@ -25,6 +38,13 @@
             </v-list-item-icon>
             <v-list-item-title>User</v-list-item-title>
           </v-list-item>
+
+          <v-list-item to="/login">
+            <v-list-item-icon>
+              <v-icon>mdi-login</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>Login</v-list-item-title>
+          </v-list-item>
         </v-list-item-group>
       </v-list>
     </v-navigation-drawer>
@@ -38,6 +58,11 @@
 
 <script>
 export default {
+  computed: {
+    userId() {
+      return this.$store.state.id;
+    },
+  },
   name: "App",
 
   components: {},

@@ -1,100 +1,66 @@
 <template>
   <v-container>
-    <v-dialog v-model="addDialog" max-width="500px">
-      <v-card>
-        <v-card-title primary-title> 사용자추가 </v-card-title>
-        <v-card-text>
-          <v-row>
-            <v-col cols="12" class="pt-0 pb-0">
-              <v-text-field v-model="newUserModel.id" label="ID"></v-text-field>
-            </v-col>
-            <v-col cols="12" class="pt-0 pb-0">
-              <v-text-field
-                v-model="newUserModel.name"
-                label="name"
-              ></v-text-field>
-            </v-col>
-            <v-col cols="12" class="pt-0 pb-0">
-              <v-text-field
-                v-model="newUserModel.password"
-                label="password"
-                type="password"
-              ></v-text-field>
-            </v-col>
-            <v-col cols="12" class="pt-0 pb-0">
-              <v-text-field
-                v-model="newUserModel.position"
-                label="Position"
-              ></v-text-field>
-            </v-col>
-            <v-col cols="12" class="pt-0 pb-0">
-              <v-text-field
-                v-model="newUserModel.contact"
-                label="Contact"
-              ></v-text-field>
-            </v-col>
-          </v-row>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <!-- fill empty space -->
-          <v-btn color="primary" tile depressed @click="onAddClick">OK</v-btn>
-          <!-- tile depressed-->
-          <v-btn color="primary" tile outlined @click="addDialog = false"
-            >Cancel</v-btn
-          >
-          <!-- outlined -->
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-    <v-dialog v-model="editDialog" max-width="500px">
+    <v-dialog v-model="onDialog" max-width="500px">
       <v-card>
         <v-card-title primary-title>
-          사용자 편집 ID: {{ editUserModel.id }}
+          {{ addFlag ? "사용자 추가" : `사용자 편집: ${userModel.id}` }}
         </v-card-title>
         <v-card-text>
-          <v-row>
-            <v-col cols="12" class="pt-0 pb-0">
-              <v-text-field
-                v-model="editUserModel.name"
-                label="name"
-              ></v-text-field>
-            </v-col>
-            <v-col cols="12" class="pt-0 pb-0">
-              <v-text-field
-                v-model="editUserModel.password"
-                label="password"
-                type="password"
-              ></v-text-field>
-            </v-col>
-            <v-col cols="12" class="pt-0 pb-0">
-              <v-text-field
-                v-model="editUserModel.position"
-                label="Position"
-              ></v-text-field>
-            </v-col>
-            <v-col cols="12" class="pt-0 pb-0">
-              <v-text-field
-                v-model="editUserModel.contact"
-                label="Contact"
-              ></v-text-field>
-            </v-col>
-          </v-row>
+          <v-form ref="userForm">
+            <v-row>
+              <v-col cols="12" class="pt-0 pb-0">
+                <v-text-field
+                  v-show="addFlag"
+                  v-model="userModel.id"
+                  label="ID"
+                  :rules="[
+                    (v) => !!v || 'required',
+                    (v) =>
+                      (!!v && v.length > 3) || 'id must have more 3 length',
+                  ]"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" class="pt-0 pb-0">
+                <v-text-field
+                  v-model="userModel.name"
+                  label="name"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" class="pt-0 pb-0">
+                <v-text-field
+                  v-model="userModel.password"
+                  v-if="addFlag"
+                  label="password"
+                  type="password"
+                  :rules="[
+                    (v) => !!v || 'required',
+                    (v) =>
+                      (!!v && v.length > 3) ||
+                      'password must have more 3 length',
+                  ]"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" class="pt-0 pb-0">
+                <v-text-field
+                  v-model="userModel.position"
+                  label="Position"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" class="pt-0 pb-0">
+                <v-text-field
+                  v-model="userModel.contact"
+                  label="Contact"
+                ></v-text-field>
+              </v-col>
+            </v-row>
+          </v-form>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <!-- fill empty space -->
-          <v-btn
-            color="primary"
-            tile
-            depressed
-            @click="onEditClick(editUserModel)"
-            >OK</v-btn
-          >
+          <v-btn color="primary" tile depressed @click="onOK">OK</v-btn>
           <!-- tile depressed-->
-          <v-btn color="primary" tile outlined @click="editDialog = false"
-            >Cancel</v-btn
-          >
+          <v-btn color="primary" tile outlined @click="onCancel">Cancel</v-btn>
           <!-- outlined -->
         </v-card-actions>
       </v-card>
@@ -127,13 +93,13 @@
       <v-col cols="2"></v-col>
       <v-col cols="8" align="center"><h4>사용자관리</h4></v-col>
       <v-col cols="2" align="end">
-        <v-btn icon><v-icon @click="addDialog = true">mdi-plus</v-icon></v-btn>
+        <v-btn icon><v-icon @click="onAddDialog()">mdi-plus</v-icon></v-btn>
       </v-col>
       <v-col cols="12">
         <v-data-table
           :headers="headers"
           :items="users"
-          :items-per-page="5"
+          :items-per-page="10"
           class="elevation-1"
         >
           <template v-slot:item.edit="{ item }">
@@ -157,51 +123,75 @@
 <script>
 export default {
   mounted() {
-    this.$axios
-      .get("/api/users")
-      .then((result) => {
-        this.users = result.data;
-        this.users.map((val, idx) => {
-          val.no = idx + 1;
-        });
-      })
-      .catch((err) => {
-        console.log("mounted fail", err);
-      });
+    this.getUser();
   },
   methods: {
-    onAddClick() {
+    getUser() {
       this.$axios
-        .post("/api/users", this.newUserModel)
-        .then(() => {
-          this.addDialog = false;
-          this.newUserModel = {
-            id: "",
-            name: "",
-            password: "",
-            position: "",
-            contact: "",
-          };
+        .get("/api/users")
+        .then((result) => {
+          this.users = result.data;
+          this.users.map((val, idx) => {
+            val.no = idx + 1;
+          });
         })
         .catch((err) => {
-          console.log("post failed", err);
+          console.log("mounted fail", err);
         });
     },
-    onEditClick(editUserModel) {
-      console.log("id: ", editUserModel.id);
-      this.editDialog = false;
+    onOK() {
+      if (!this.$refs.userForm.validate()) {
+        return;
+      }
+      if (this.addFlag) {
+        this.$axios
+          .post("/api/users", this.userModel)
+          .then(() => {
+            this.onDialog = false;
+            this.getUser();
+          })
+          .catch((err) => {
+            console.log("post failed", err);
+          });
+      } else {
+        this.$axios
+          .patch(`/api/users/${this.userModel.id}`, {
+            name: this.userModel.name,
+            contact: this.userModel.contact,
+            position: this.userModel.position,
+          })
+          .then(() => {
+            this.onDialog = false;
+            this.addFlag = true;
+            this.getUser();
+          })
+          .catch((err) => {
+            console.log("patch failed", err);
+          });
+      }
+      this.$refs.userForm.reset();
+    },
+    onCancel() {
+      this.$refs.userForm.reset();
+      this.onDialog = false;
+    },
+    onAddDialog() {
+      this.addFlag = true;
+      this.onDialog = true;
     },
     onEditDialog(item) {
-      this.editDialog = true;
-      this.editUserModel = item;
+      this.userModel = { ...item };
+      this.addFlag = false;
+      this.onDialog = true;
     },
     onDeleteClick(userID) {
       console.log("id: ", userID);
       this.$axios
-        .delete("/api/users/" + `${userID}`)
+        .delete(`/api/users/${userID}`)
         .then(() => {
           this.deleteDialog = false;
           this.deleteUserID = "";
+          this.getUser();
         })
         .catch((err) => {
           console.log("delete failed", err);
@@ -214,14 +204,7 @@ export default {
   },
   data() {
     return {
-      newUserModel: {
-        id: "",
-        name: "",
-        password: "",
-        position: "",
-        contact: "",
-      },
-      editUserModel: {
+      userModel: {
         id: "",
         name: "",
         password: "",
@@ -229,9 +212,9 @@ export default {
         contact: "",
       },
       deleteUserID: "",
-      addDialog: false,
-      editDialog: false,
+      onDialog: false,
       deleteDialog: false,
+      addFlag: true,
       headers: [
         { text: "No", value: "no" },
         { text: "ID", value: "id" },

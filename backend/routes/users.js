@@ -41,4 +41,18 @@ router.post("/", function (req, res) {
     });
 });
 
+router.patch("/:id", function (req, res) {
+  console.log(req.body);
+  userModel
+    .updateOne({ id: req.params.id }, req.body)
+    .then((result) => {
+      console.log(result);
+      res.status(200).json(result);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.sendStatus(400);
+    });
+});
+
 module.exports = router;
