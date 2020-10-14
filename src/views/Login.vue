@@ -72,8 +72,8 @@ export default {
   },
   data: () => ({
     loginModel: {
-      id: "",
-      password: "",
+      id: "admin",
+      password: "admin",
     },
     passError: false,
     idError: false,

@@ -15,12 +15,12 @@ router.post("/", function (req, res) {
 
         if (isMatched) {
           authModule
-            .createToken({ id: user.id, name: user.name })
+            .createToken({ id: user.id, name: user.name, role: user.role })
             .then((token) => {
               res
-                .cookie("token", token, { maxAge: 60000, httpOnly: true })
+                .cookie("token", token, { maxAge: 7200000, httpOnly: true })
                 .status(200)
-                .json({ id: user.id, name: user.name });
+                .json({ id: user.id, name: user.name, role: user.role });
             })
             .catch((err) => {
               console.log(err);
@@ -35,6 +35,42 @@ router.post("/", function (req, res) {
       console.log(err);
       res.sendStatus(400);
     });
+});
+
+router.post("/refresh", function (req, res) {
+  authModule
+    .decodeToken(req.cookies.token)
+    .then((decoded) => {
+      if (decoded) {
+        authModule
+          .createToken({
+            id: decoded.id,
+            name: decoded.name,
+            role: decoded.role,
+          })
+          .then((token) => {
+            res
+              .cookie("token", token, {
+                maxAge: 2 * 60 * 60 * 1000,
+                httpOnly: true,
+              })
+              .status(200)
+              .json({ id: decoded.id, name: decoded.name, role: decoded.role });
+          })
+          .catch((err) => {
+            console.log(err);
+            res.sendStatus(400);
+          });
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      res.sendStatus(400);
+    });
+});
+
+router.post("/logout", function (req, res) {
+  res.clearCookie("token").sendStatus(200);
 });
 
 module.exports = router;

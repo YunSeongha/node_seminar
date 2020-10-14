@@ -3,7 +3,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const SECRET_KEY = process.env.SECRET_KEY;
-const option = { expiresIn: "1m", issuer: "appsec", subject: "userInfo" };
+const option = { expiresIn: "2h", issuer: "appsec", subject: "userInfo" };
 
 module.exports = {
   createToken(payload) {

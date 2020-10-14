@@ -8,7 +8,8 @@ const userSchema = new mongoose.Schema({
   position: { type: String },
   contact: { type: String, required: true },
   createdAt: { type: String, default: new Date() },
-  nowAt: { type: String },
+  at: { type: String, default: "Lab" },
+  role: { type: String, default: "user" },
 });
 
 userSchema.pre("save", function (next) {

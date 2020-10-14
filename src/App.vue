@@ -11,7 +11,6 @@
 
       <v-btn
         v-else
-        to="/logout"
         color="primary"
         class="elevation-0"
         @click="$store.commit('logout')"
@@ -32,18 +31,25 @@
             <v-list-item-title>Home</v-list-item-title>
           </v-list-item>
 
-          <v-list-item to="/user">
+          <v-list-item to="/user" v-if="role == 'admin'">
             <v-list-item-icon>
               <v-icon>mdi-account</v-icon>
             </v-list-item-icon>
             <v-list-item-title>User</v-list-item-title>
           </v-list-item>
 
-          <v-list-item to="/login">
+          <v-list-item to="/login" v-if="!userId">
             <v-list-item-icon>
               <v-icon>mdi-login</v-icon>
             </v-list-item-icon>
             <v-list-item-title>Login</v-list-item-title>
+          </v-list-item>
+
+          <v-list-item to="/login" v-else @click="$store.commit('logout')">
+            <v-list-item-icon>
+              <v-icon>mdi-logout</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>Logout</v-list-item-title>
           </v-list-item>
         </v-list-item-group>
       </v-list>
@@ -61,6 +67,9 @@ export default {
   computed: {
     userId() {
       return this.$store.state.id;
+    },
+    role() {
+      return this.$store.state.role;
     },
   },
   name: "App",

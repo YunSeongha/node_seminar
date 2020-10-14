@@ -102,6 +102,7 @@
           :items-per-page="10"
           class="elevation-1"
         >
+          <!--eslint-disable-->
           <template v-slot:item.edit="{ item }">
             <v-btn icon
               ><v-icon @click="onEditDialog(item)">mdi-pencil</v-icon></v-btn
